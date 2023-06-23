@@ -1,5 +1,6 @@
 let { contas, depositos, saques, transferencias } = require('../bancodedados');
 
+
 const listarContas = (req, res) => {
     return res.status(200).json(contas);
 }
@@ -58,7 +59,30 @@ const atualizarUsuarioConta = (req, res) => {
 
 }
 
+const excluirConta = (req, res) => {
+    const { numConta } = req.params;
+
+    const buscarConta = contas.find(conta => conta.numero === numConta);
+
+    if (!buscarConta) {
+        const statusCode = res.status(404).json({ mensagem: 'Conta inexistente!' });
+        return statusCode;
+    }
+
+    if (buscarConta.saldo) {
+        const statusCode = res.status(404).json({ mensagem: 'É necessário zerar o saldo antes de excluir a conta' });
+        return statusCode;
+    }
+
+    contas = contas.filter(conta => conta !== buscarConta);
+
+
+    return res.status(201).json({ mensagem: 'Conta excluída!' });
+
+}
+
 module.exports = {
     listarContas,
-    criarConta
+    criarConta,
+    excluirConta
 }
