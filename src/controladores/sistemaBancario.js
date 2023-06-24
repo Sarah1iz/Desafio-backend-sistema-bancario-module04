@@ -44,14 +44,8 @@ const criarConta = (req, res) => {
 
     contas.push(aberturaConta);
 
-    if (aberturaConta) {
-        return res.status(201).json(aberturaConta);
-    } else {
-        return res.status(404).json({ mensagem: 'Algo deu errado!' });
-        //arrumar uma forma de colocar validação para o erro 400
-    }
 
-
+    return res.status(201).json(aberturaConta);
 
 }
 
@@ -66,7 +60,7 @@ const atualizarUsuarioConta = (req, res) => {
         return statusCode;
     }
 
-    if (!nome && !cpf && !data_nascimento && !telefone && !email && !senha) {
+    if (!(nome && cpf && data_nascimento && telefone && email && senha)) {
         const statusCode = res.status(404).json({ mensagem: 'É necessário preencher pelo menos um campo' });
         return statusCode;
     }
@@ -98,7 +92,6 @@ const atualizarUsuarioConta = (req, res) => {
 
 }
 
-
 const excluirConta = (req, res) => {
     const { numConta } = req.params;
 
@@ -110,7 +103,7 @@ const excluirConta = (req, res) => {
     }
 
     if (buscarConta.saldo) {
-        const statusCode = res.status(404).json({ mensagem: 'É necessário zerar o saldo antes de excluir a conta' });
+        const statusCode = res.status(400).json({ mensagem: 'É necessário zerar o saldo antes de excluir a conta' });
         return statusCode;
     }
 
@@ -121,9 +114,44 @@ const excluirConta = (req, res) => {
 
 }
 
+const depositar = (req, res) => {
+    const { numero_conta, valor } = req.body;
+
+    if (!numero_conta) {
+        const statusCode = res.status(400).json({ mensagem: 'Informe o número da conta' });
+        return statusCode;
+    }
+
+    const validarConta = contas.find(conta => conta.numero === numero_conta);
+
+    if (!validarConta) {
+        const statusCode = res.status(404).json({ mensagem: 'A conta informada não existe' })
+        return statusCode;
+    }
+
+    if (!valor || valor < 0 || valor.length == 0) {
+        const statusCode = res.status(400).json({ mensagem: 'Informe um valor para depósito' });
+        return statusCode;
+    }
+
+    validarConta.saldo += valor;
+
+    const deposito = {
+        data: new Date(),
+        numero_conta,
+        valor
+    }
+
+    depositos.push(deposito);
+
+    return res.status(200).json({ mensagem: 'Depósito realizado com sucesso!' })
+
+}
+
 module.exports = {
     listarContas,
     criarConta,
     atualizarUsuarioConta,
-    excluirConta
+    excluirConta,
+    depositar
 }
