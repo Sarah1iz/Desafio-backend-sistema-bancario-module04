@@ -56,8 +56,48 @@ const criarConta = (req, res) => {
 }
 
 const atualizarUsuarioConta = (req, res) => {
+    const { numConta } = req.params;
+    const { nome, cpf, data_nascimento, telefone, email, senha } = req.body;
+
+    const validarConta = contas.find(conta => conta.numero === numConta);
+
+    if (!validarConta) {
+        const statusCode = res.status(404).json({ mensagem: 'O número da conta é inválido' });
+        return statusCode;
+    }
+
+    if (!nome && !cpf && !data_nascimento && !telefone && !email && !senha) {
+        const statusCode = res.status(404).json({ mensagem: 'É necessário preencher pelo menos um campo' });
+        return statusCode;
+    }
+
+    const validarCPF = contas.find(cpfBody => cpfBody.usuario.cpf === cpf);
+
+    if (validarCPF) {
+        const statusCode = res.status(404).json({ mensagem: 'CPF já cadastrado' });
+        return statusCode;
+    }
+
+
+    const validarEmail = contas.find(emailBody => emailBody.usuario.email === email);
+
+    if (validarEmail) {
+        const statusCode = res.status(404).json({ mensagem: 'Email já cadastrado' });
+        return statusCode;
+    }
+
+    validarConta.usuario.nome = nome ?? validarConta.usuario.nome;
+    validarConta.usuario.cpf = cpf ?? validarConta.usuario.cpf;
+    validarConta.usuario.data_nascimento = data_nascimento ?? validarConta.usuario.data_nascimento;
+    validarConta.usuario.telefone = telefone ?? validarConta.usuario.telefone;
+    validarConta.usuario.email = email ?? validarConta.usuario.email;
+    validarConta.usuario.senha = senha ?? validarConta.usuario.senha;
+
+    return res.status(204).json({ mensagem: 'Usuário atualizado com sucesso' });
+
 
 }
+
 
 const excluirConta = (req, res) => {
     const { numConta } = req.params;
@@ -84,5 +124,6 @@ const excluirConta = (req, res) => {
 module.exports = {
     listarContas,
     criarConta,
+    atualizarUsuarioConta,
     excluirConta
 }

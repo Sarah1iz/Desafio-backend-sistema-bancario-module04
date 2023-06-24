@@ -1,5 +1,5 @@
 const express = require('express');
-let { listarContas, criarConta, excluirConta } = require('./controladores/sistemaBancario');
+let { listarContas, criarConta, atualizarUsuarioConta, excluirConta } = require('./controladores/sistemaBancario');
 const { validarSenha } = require('./intermediarios/intermediarios');
 const rotas = express();
 
@@ -8,9 +8,9 @@ rotas.get('/contas', validarSenha, listarContas);
 
 rotas.post('/contas', criarConta);
 
-//rotas.put('/contas/:numeroConta/usuario', atualizarUsuarioConta);
+rotas.put('/contas/:numConta/usuario', atualizarUsuarioConta);
 
-rotas.delete('/contas/:numeroConta', excluirConta);
+rotas.delete('/contas/:numConta', excluirConta);
 
 // rotas.post('/depositar', depositar);
 
