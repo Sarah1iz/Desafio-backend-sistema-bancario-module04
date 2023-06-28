@@ -148,10 +148,103 @@ const depositar = (req, res) => {
 
 }
 
+const sacar = (req, res) => {
+    const { numero_conta, valor, senha } = req.body;
+
+    if (!numero_conta) {
+        const statusCode = res.status(400).json({ mensagem: 'Informe o número da conta' });
+        return statusCode;
+    }
+
+    if (!valor || valor <= 0) {
+        const statusCode = res.status(400).json({ mensagem: 'Informe um valor para saque' });
+        return statusCode;
+    } else if (valor > saldo) {
+        const statusCode = res.status(400).json({ mensagem: 'Saldo insufiente' });
+        return statusCode;
+    }
+
+    if (!senha) {
+        const statusCode = res.status(400).json({ mensagem: 'Informe a senha da conta' });
+        return statusCode;
+    }
+
+    const validarConta = contas.find(conta => conta.numero === numero_conta && conta.senha === senha);
+
+    if (!validarConta) {
+        const statusCode = res.status(404).json({ mensagem: 'A conta informada não existe' })
+        return statusCode;
+    }
+
+    validarConta.saldo -= valor;
+
+    const saques = {
+        data: new Date(),
+        numero_conta,
+        valor
+    }
+
+    saques.push(sacar);
+
+    return res.status(200).json({ mensagem: 'Saque realizado com sucesso!' })
+}
+
+const transferir = (req, res) => {
+    const { numero_conta_origem, senha_origem, valor, numero_conta_destino } = req.body;
+
+    if (!numero_conta_origem) {
+        const statusCode = res.status(400).json({ mensagem: 'Informe o número da conta de origem' });
+        return statusCode;
+    }
+
+    if (!senha_origem) {
+        const statusCode = res.status(400).json({ mensagem: 'Informe a senha da conta de origem' });
+        return statusCode;
+    }
+
+    if (!numero_conta_destino) {
+        const statusCode = res.status(400).json({ mensagem: 'Informe o número da conta de destino' });
+        return statusCode;
+    }
+
+    if (!valor || valor <= 0) {
+        const statusCode = res.status(400).json({ mensagem: 'Informe um valor para saque' });
+        return statusCode;
+    } else if (valor > saldo) {
+        const statusCode = res.status(400).json({ mensagem: 'Saldo insufiente' });
+        return statusCode;
+    }
+
+    const origem = contas.find(conta => conta.id === numero_conta_origem);
+    const destino = contas.find(conta => conta.id === numero_conta_destino);
+
+    if (!origem || !destino) {
+        const statusCode = res.status(404).json({ mensagem: 'Conta não encontrada' });
+        return statusCode;
+    }
+
+    origem.saldo -= valor;
+    destino.saldo += valor;
+
+    const transferencias = {
+        data: new Date(),
+        numero_conta_origem,
+        numero_conta_destino,
+        valor
+    }
+
+    transferencias.push(transferir);
+
+    return res.status(200).json({ mensagem: 'Transferência realizada com sucesso!' })
+}
+
+
 module.exports = {
     listarContas,
     criarConta,
     atualizarUsuarioConta,
     excluirConta,
-    depositar
+    depositar,
+    sacar,
+    transferir
 }
