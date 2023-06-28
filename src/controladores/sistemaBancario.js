@@ -217,9 +217,15 @@ const transferir = (req, res) => {
 
     const origem = contas.find(conta => conta.id === numero_conta_origem);
     const destino = contas.find(conta => conta.id === numero_conta_destino);
+    const validarSenha = contas.find(conta => conta.senha === senha_origem)
 
     if (!origem || !destino) {
         const statusCode = res.status(404).json({ mensagem: 'Conta não encontrada' });
+        return statusCode;
+    }
+
+    if (!validarSenha) {
+        const statusCode = res.status(404).json({ mensagem: 'A senha informada está incorreta' })
         return statusCode;
     }
 
