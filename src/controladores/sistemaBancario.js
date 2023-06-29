@@ -1,4 +1,5 @@
 let { contas, depositos, saques, transferencias } = require('../bancodedados');
+const { validarSenha } = require('../intermediarios/intermediarios');
 
 
 const listarContas = (req, res) => {
@@ -156,48 +157,51 @@ const sacar = (req, res) => {
         return statusCode;
     }
 
-    if (!valor || valor <= 0) {
-        const statusCode = res.status(400).json({ mensagem: 'Informe um valor para saque' });
-        return statusCode;
-    } else if (valor > saldo) {
-        const statusCode = res.status(400).json({ mensagem: 'Saldo insufiente' });
-        return statusCode;
-    }
-
     if (!senha) {
         const statusCode = res.status(400).json({ mensagem: 'Informe a senha da conta' });
         return statusCode;
     }
 
-    const validarConta = contas.find(conta => conta.numero === numero_conta && conta.senha === senha);
+    const validarConta = contas.find(conta => conta.numero === numero_conta);
+    const validarSenha = contas.find(conta => conta.senha === senha);//nao ta validando a senha
 
-    if (!validarConta) {
+    if (!validarConta && !validarSenha) {
         const statusCode = res.status(404).json({ mensagem: 'A conta informada não existe' })
+        return statusCode;
+    }
+
+    if (!valor || valor <= 0) {
+        const statusCode = res.status(400).json({ mensagem: 'Informe um valor para saque' });
+        return statusCode;
+    }
+
+    if (valor > validarConta.saldo) {
+        const statusCode = res.status(400).json({ mensagem: 'Saldo insufiente' });
         return statusCode;
     }
 
     validarConta.saldo -= valor;
 
-    const saques = {
+    const saque = {
         data: new Date(),
         numero_conta,
         valor
     }
 
-    saques.push(sacar);
+    saques.push(saque);
 
     return res.status(200).json({ mensagem: 'Saque realizado com sucesso!' })
 }
 
 const transferir = (req, res) => {
-    const { numero_conta_origem, senha_origem, valor, numero_conta_destino } = req.body;
+    const { numero_conta_origem, senha, valor, numero_conta_destino } = req.body;
 
     if (!numero_conta_origem) {
         const statusCode = res.status(400).json({ mensagem: 'Informe o número da conta de origem' });
         return statusCode;
     }
 
-    if (!senha_origem) {
+    if (!senha) {
         const statusCode = res.status(400).json({ mensagem: 'Informe a senha da conta de origem' });
         return statusCode;
     }
@@ -217,10 +221,10 @@ const transferir = (req, res) => {
 
     const origem = contas.find(conta => conta.id === numero_conta_origem);
     const destino = contas.find(conta => conta.id === numero_conta_destino);
-    const validarSenha = contas.find(conta => conta.senha === senha_origem)
+    const validarSenha = contas.find(conta => conta.senha === senha);
 
-    if (!origem || !destino) {
-        const statusCode = res.status(404).json({ mensagem: 'Conta não encontrada' });
+    if (!origem && !destino) {
+        const statusCode = res.status(404).json({ mensagem: 'Conta não encontrada' }); //ta caindo nessa condição
         return statusCode;
     }
 
@@ -244,6 +248,66 @@ const transferir = (req, res) => {
     return res.status(200).json({ mensagem: 'Transferência realizada com sucesso!' })
 }
 
+const saldo = (req, res) => {
+    const { numero_conta, senha } = req.query
+
+    const conta = contas.find(conta => conta.numero === numero_conta) //falta validar senha
+
+    if (!conta) {
+        const statusCode = res.status(404).json({ mensagem: 'A conta informada não existe' })
+        return statusCode;
+    }
+
+    return res.json({ saldo: conta.saldo })
+
+}
+
+const extrato = (req, res) => {
+    const { numero_conta, senha, valor, numero_conta_origem, numero_conta_destino } = req.query
+
+    const conta = contas.find(conta => conta.numero === numero_conta)//falta validar a senha
+
+    if (!conta) {
+        const statusCode = res.status(404).json({ mensagem: 'A conta informada não existe' })
+        return statusCode;
+    }
+
+    const extratos = [{
+        depositos: [
+            {
+                data: new Date(),
+                numero_conta,
+                valor
+            },
+        ],
+        saques: [
+            {
+                data: new Date(),
+                numero_conta,
+                valor
+            }
+        ],
+        transferenciasEnviadas: [
+            {
+                data: new Date(),
+                numero_conta_origem,
+                numero_conta_destino,
+                valor
+            }
+        ],
+        transferenciasRecebidas: [
+            {
+                data: new Date(),
+                numero_conta_origem,
+                numero_conta_destino,
+                valor
+            },
+        ]
+    }]
+
+    extratos.push(extratos);
+    return res.json({ extrato }) //dando um array vazio
+}
 
 module.exports = {
     listarContas,
@@ -252,5 +316,7 @@ module.exports = {
     excluirConta,
     depositar,
     sacar,
-    transferir
+    transferir,
+    saldo,
+    extrato
 }

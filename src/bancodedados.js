@@ -37,7 +37,11 @@ module.exports = {
 
   ],
   depositos: [
-
+    {
+      data: "2021-08-10 23:40:35",
+      numero_conta: "1",
+      valor: 10000
+    }
   ],
   transferencias: [
 
