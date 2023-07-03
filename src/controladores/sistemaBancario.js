@@ -1,5 +1,5 @@
 let { contas, depositos, saques, transferencias } = require('../bancodedados');
-const { validarSenha } = require('../intermediarios/intermediarios');
+
 
 
 const listarContas = (req, res) => {
@@ -14,7 +14,7 @@ const criarConta = (req, res) => {
         return statusCode;
     }
 
-    const numConta = contas.length + 1;
+    const numero = contas.length + 1;
 
     const cadastrarCPF = contas.find(conta => conta.usuario.cpf === cpf);
     if (cadastrarCPF) {
@@ -31,7 +31,7 @@ const criarConta = (req, res) => {
 
 
     const aberturaConta = {
-        numConta: numConta.toString(),
+        numero: numero.toString(),
         saldo: 0,
         usuario: {
             nome,
@@ -61,7 +61,7 @@ const atualizarUsuarioConta = (req, res) => {
         return statusCode;
     }
 
-    if (!(nome && cpf && data_nascimento && telefone && email && senha)) {
+    if (!nome && !cpf && !data_nascimento && !telefone && !email && !senha) {
         const statusCode = res.status(404).json({ mensagem: 'É necessário preencher pelo menos um campo' });
         return statusCode;
     }
@@ -104,7 +104,7 @@ const excluirConta = (req, res) => {
     }
 
     if (buscarConta.saldo) {
-        const statusCode = res.status(400).json({ mensagem: 'É necessário zerar o saldo antes de excluir a conta' });
+        const statusCode = res.status(404).json({ mensagem: 'É necessário zerar o saldo antes de excluir a conta' });
         return statusCode;
     }
 
@@ -315,8 +315,9 @@ module.exports = {
     atualizarUsuarioConta,
     excluirConta,
     depositar,
-    sacar,
-    transferir,
-    saldo,
-    extrato
+    //     sacar,
+    //     transferir,
+    //     saldo,
+    //     extrato
+    // 
 }
