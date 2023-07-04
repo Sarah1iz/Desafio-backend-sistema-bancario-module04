@@ -1,5 +1,6 @@
 let { contas, depositos, saques, transferencias } = require('../bancodedados');
-let { dataFormatada } = require('../utils/formatDate');
+const { dataFormatada } = require('../utils/formatDate');
+
 
 const listarContas = (req, res) => {
     return res.status(200).json(contas);
@@ -125,7 +126,7 @@ const depositar = (req, res) => {
     const validarConta = contas.find(conta => conta.numero === numero_conta);
 
     if (!validarConta) {
-        const statusCode = res.status(404).json({ mensagem: 'A conta informada não existe' });
+        const statusCode = res.status(404).json({ mensagem: 'A conta informada não existe' })
         return statusCode;
     }
 
@@ -140,7 +141,7 @@ const depositar = (req, res) => {
         data: dataFormatada(),
         numero_conta,
         valor
-    };
+    }
 
     depositos.push(deposito);
 
@@ -163,16 +164,16 @@ const sacar = (req, res) => {
 
     const validarConta = contas.find(conta => conta.numero === numero_conta);
 
+
     if (!validarConta) {
-        const statusCode = res.status(404).json({ mensagem: 'A conta informada não existe' })
+        const statusCode = res.status(404).json({ mensagem: 'A conta informada não existe' });
         return statusCode;
     }
 
     if (validarConta.usuario.senha !== senha) {
-        const statusCode = res.status(404).json({ mensagem: 'Senha Incorreta!' })
+        const statusCode = res.status(404).json({ mensagem: 'Senha incorreta' });
         return statusCode;
     }
-
 
     if (!valor || valor <= 0) {
         const statusCode = res.status(400).json({ mensagem: 'Informe um valor para saque' });
@@ -324,5 +325,4 @@ module.exports = {
     transferir,
     saldo,
     extrato
-
 }
